@@ -1,0 +1,64 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    </head>
+    <body>
+        <div class="mermaid">
+            graph TB
+    subgraph "Frontend Layer"
+        User[👤 User]
+        NextJS[Next.js 14<br/>App Router]
+        UI[File Viewer + Tree]
+    end
+    
+    subgraph "API Layer"
+        FastAPI[FastAPI<br/>Python Backend]
+        Router[API Routes]
+        BgTask[Background Tasks]
+    end
+    
+    subgraph "Processing Layer"
+        GitService[Git Service<br/>Clone Repo]
+        Parser[Code Parser<br/>Tree-sitter]
+        EmbedService[Embedding Service<br/>Ollama nomic-embed]
+    end
+    
+    subgraph "Storage Layer"
+        PostgreSQL[(PostgreSQL<br/>Metadata + Chat)]
+        ChromaDB[(ChromaDB<br/>Vector Embeddings)]
+    end
+    
+    subgraph "AI Layer"
+        Ollama[Ollama<br/>qwen2.5-coder:7b]
+        RAG[RAG Service<br/>Query Pipeline]
+    end
+    
+    User -->|1. Submit GitHub URL| NextJS
+    NextJS -->|2. POST /repo/ingest| FastAPI
+    FastAPI -->|3. Create DB Record| PostgreSQL
+    FastAPI -->|4. Queue Background Task| BgTask
+    BgTask -->|5. Clone Repo| GitService
+    GitService -->|6. Parse Files| Parser
+    Parser -->|7. Generate Embeddings| EmbedService
+    EmbedService -->|8. Ollama API| Ollama
+    EmbedService -->|9. Store Vectors| ChromaDB
+    EmbedService -->|10. Save Metadata| PostgreSQL
+    
+    User -->|11. Ask Question| NextJS
+    NextJS -->|12. POST /chat| FastAPI
+    FastAPI -->|13. Vector Search| RAG
+    RAG -->|14. Query Embeddings| ChromaDB
+    RAG -->|15. Build Prompt| RAG
+    RAG -->|16. Generate Answer| Ollama
+    RAG -->|17. Save Chat| PostgreSQL
+    FastAPI -->|18. Return Answer| NextJS
+    NextJS -->|19. Display with Sources| User
+    
+    NextJS -->|20. Browse Code| UI
+    UI -->|21. Fetch File Tree| FastAPI
+    FastAPI -->|22. Query Files| PostgreSQL
+        </div>
+    </body>
+    </html>

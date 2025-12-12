@@ -1,0 +1,127 @@
+# CodeMind AI - Root .gitignore
+
+# Editor directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.envrc
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector database storage
+chroma_data/
+vectordb/
+faiss_index/
+
+# Temporary repositories
+temp_repos/
+repos_temp/
+
+# Coverage reports
+coverage/
+.coverage
+htmlcov/
+.nyc_output
+
+# Backup files
+*.bak
+*.backup
+
+# Security
+*.pem
+*.key
+*.cert
+secrets/
+credentials/
+
+# Large files
+*.bin
+*.exe
+*.dmg
+*.pkg
+
+# Documentation builds
+docs/_build/
+site/
+
+# IDE specific
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Testing
+.pytest_cache/
+.tox/
+.nox/
+junit.xml
+test-results/
+
+# CI/CD
+.github/workflows/secrets/
+
+# Docker (optional - uncomment if using)
+# *.dockerignore
+# docker-compose.override.yml
