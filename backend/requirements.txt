@@ -1,0 +1,19 @@
+# backend/requirements.txt
+
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+chromadb==0.4.22
+langchain==0.1.4
+langchain-community==0.0.16
+python-dotenv==1.0.0
+GitPython==3.1.41
+
+# Tree-sitter with correct versions
+tree-sitter==0.21.3
+tree_sitter_python==0.21.0
+tree_sitter_javascript==0.21.0
+tree_sitter_typescript==0.21.0
+tree_sitter_java==0.21.0
+tree_sitter_go==0.21.1

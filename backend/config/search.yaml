@@ -1,0 +1,64 @@
+# backend/config/search.yaml
+
+# Search Configuration
+search:
+  # Ranking weights (must sum to ~1.0)
+  weights:
+    semantic: 0.6    # α - Weight for semantic similarity
+    keyword: 0.3     # β - Weight for keyword matching
+    symbol: 0.1      # γ - Weight for symbol matching
+  
+  # Retrieval parameters
+  retrieval:
+    semantic_top_k: 50      # Top-K results from vector search
+    keyword_top_k: 50       # Top-K results from keyword search
+    symbol_top_k: 20        # Top-K results from symbol search
+    final_top_n: 20         # Final number of results to return
+  
+  # Chunking parameters
+  chunking:
+    chunk_size: 800         # Target chunk size in tokens
+    chunk_overlap: 200      # Overlap between chunks
+    max_chunk_size: 2000    # Maximum chunk size
+    min_chunk_size: 100     # Minimum chunk size
+  
+  # Symbol extraction
+  symbols:
+    enabled: true
+    types:
+      - function
+      - class
+      - method
+      - variable
+      - constant
+      - interface
+      - type
+  
+  # Performance
+  performance:
+    cache_ttl: 3600         # Cache TTL in seconds (1 hour)
+    regex_timeout: 5        # Regex timeout in seconds
+    max_regex_matches: 1000 # Maximum regex matches
+    batch_size: 100         # Batch size for processing
+  
+  # Security
+  security:
+    ignore_patterns:
+      - ".env"
+      - ".env.*"
+      - "*.pem"
+      - "*.key"
+      - "node_modules/**"
+      - ".git/**"
+      - "__pycache__/**"
+      - "*.pyc"
+      - "*.min.js"
+      - "*.bundle.js"
+    redact_secrets: true
+    max_file_size_mb: 5
+  
+  # Indexing
+  indexing:
+    incremental: true
+    parallel_workers: 4
+    auto_reindex_on_push: false
