@@ -197,39 +197,39 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-mesh pointer-events-none" aria-hidden="true"></div>
 
           <div className="relative text-center mb-12 animate-fade-in">
-            <div className="flex items-center justify-center mb-6">
-              <Sparkles className="w-8 h-8 text-blue-400 mr-3" />
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                Chat with <span className="text-blue-300">Your Codebase</span>
+            <div className="flex items-center justify-center mb-4">
+              <Sparkles className="w-6 h-6 text-blue-400 mr-2" />
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                Chat with <span className="text-blue-200">Your Codebase</span>
               </h1>
             </div>
-            <p className="text-base text-gray-400 max-w-2xl mx-auto">
+            <p className="text-sm text-gray-400 max-w-xl mx-auto">
               Ingest any GitHub repository and have intelligent conversations about the code using AI-powered RAG technology.
             </p>
           </div>
 
           {/* Features Grid with Animated Cards */}
           <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto relative">
-            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up">
-              <Code2 className="w-10 h-10 text-blue-500 mb-3" />
-              <h3 className="text-lg font-semibold text-white mb-2">Code Analysis</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-lg p-6 shadow-card hover:bg-gray-800/80 transition-smooth animate-slide-up">
+              <Code2 className="w-8 h-8 text-blue-400 mb-3" />
+              <h3 className="text-base font-semibold text-white mb-2">Code Analysis</h3>
+              <p className="text-gray-400 text-xs">
                 AI-powered analysis of your entire codebase structure and patterns
               </p>
             </div>
 
-            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up delay-100">
-              <MessageSquare className="w-10 h-10 text-green-500 mb-3" />
-              <h3 className="text-lg font-semibold text-white mb-2">Smart Conversations</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-lg p-6 shadow-card hover:bg-gray-800/80 transition-smooth animate-slide-up delay-100">
+              <MessageSquare className="w-8 h-8 text-green-400 mb-3" />
+              <h3 className="text-base font-semibold text-white mb-2">Smart Conversations</h3>
+              <p className="text-gray-400 text-xs">
                 Ask questions in plain English and get contextual answers
               </p>
             </div>
 
-            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up delay-200">
-              <Zap className="w-10 h-10 text-yellow-500 mb-3" />
-              <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-gray-800/60 backdrop-blur border border-gray-700/50 rounded-lg p-6 shadow-card hover:bg-gray-800/80 transition-smooth animate-slide-up delay-200">
+              <Zap className="w-8 h-8 text-yellow-400 mb-3" />
+              <h3 className="text-base font-semibold text-white mb-2">Lightning Fast</h3>
+              <p className="text-gray-400 text-xs">
                 Powered by advanced RAG technology for precise results
               </p>
             </div>
@@ -238,10 +238,10 @@ export default function Home() {
 
         {/* Main Card with Animation */}
         <div className="max-w-2xl mx-auto mb-12 animate-scale-in delay-300">
-          <div className="glass rounded-2xl p-8 shadow-card">
+          <div className="bg-gray-900/80 backdrop-blur border border-gray-800 rounded-2xl p-8 shadow-card">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="github-url" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="github-url" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
                   GitHub Repository URL
                 </label>
                 <div className="relative">
@@ -253,77 +253,37 @@ export default function Home() {
                     onChange={(e) => setGithubUrl(e.target.value)}
                     placeholder="https://github.com/username/repository"
                     disabled={isLoading}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-950/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
                   />
                 </div>
               </div>
 
+              {/* Error Message */}
               {error && (
-                <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-                  <p className="text-red-400 text-sm">{error}</p>
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2 animate-fade-in">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  {error}
                 </div>
               )}
 
-              {/* Progress Section */}
-              {isLoading && (
-                <div className="space-y-4">
-                  <div className="bg-gray-800/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">{statusMessage}</span>
-                      <span className="text-sm text-purple-400">{Math.round(progress)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+              {/* Progress Bar */}
+              {currentStep !== 'idle' && (
+                <div className="space-y-2 animate-fade-in">
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>{statusMessage}</span>
+                    <span>{Math.round(progress)}%</span>
                   </div>
-
-                  {/* Progress Steps */}
-                  <div className="flex justify-between items-center">
-                    {[
-                      { id: 'ingesting', label: 'Ingesting', icon: Github },
-                      { id: 'polling', label: 'Processing', icon: Loader2 },
-                      { id: 'ready', label: 'Ready', icon: CheckCircle2 },
-                    ].map((step) => {
-                      const status = getStepStatus(step.id);
-                      const Icon = step.icon;
-                      return (
-                        <div key={step.id} className="flex flex-col items-center">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all ${status === 'completed'
-                              ? 'bg-green-500/20 border-2 border-green-500'
-                              : status === 'active'
-                                ? 'bg-purple-500/20 border-2 border-purple-500 animate-pulse'
-                                : 'bg-gray-800 border-2 border-gray-700'
-                              }`}
-                          >
-                            <Icon
-                              className={`w-6 h-6 ${status === 'completed'
-                                ? 'text-green-500'
-                                : status === 'active'
-                                  ? 'text-purple-500'
-                                  : 'text-gray-600'
-                                } ${status === 'active' && step.id === 'polling' ? 'animate-spin' : ''}`}
-                            />
-                          </div>
-                          <span
-                            className={`text-xs ${status !== 'pending' ? 'text-gray-300' : 'text-gray-600'
-                              }`}
-                          >
-                            {step.label}
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
                 </div>
               )}
 
-              {/* Success State */}
+              {/* Success Actions */}
               {currentStep === 'ready' && repoId && (
-                <div className="space-y-4">
                   <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-green-400">
                       <CheckCircle2 className="w-5 h-5" />
@@ -356,155 +316,157 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Submit Button */}
-              {currentStep === 'idle' && (
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-700 disabled:to-gray-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      Start Ingesting
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
-                </button>
+          {/* Submit Button */}
+          {currentStep === 'idle' && (
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-700 disabled:to-gray-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Start Ingesting
+                  <ArrowRight className="w-5 h-5" />
+                </>
               )}
-            </form>
-          </div>
+            </button>
+          )}
+        </form>
+      </div>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
-            Enter any public GitHub repository URL to start analyzing the code
-          </p>
+      <p className="text-center text-gray-500 text-sm mt-6">
+        Enter any public GitHub repository URL to start analyzing the code
+      </p>
+    </div>
+
+        {/* Repository List Section */ }
+  {
+    showRepoList && (
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white">Your Repositories</h2>
+          <button
+            onClick={loadRepositories}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
         </div>
 
-        {/* Repository List Section */}
-        {showRepoList && (
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Your Repositories</h2>
-              <button
-                onClick={loadRepositories}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </button>
-            </div>
+        {isLoadingRepos ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+            <p className="text-gray-400">Loading repositories...</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {repositories.map((repo) => {
+              const repoName = repo.github_url.split('/').pop()?.replace('.git', '') || 'Repository';
+              const fileCount = repo.repo_metadata?.total_files || 0;
+              const canReingest = repo.status === 'completed' || repo.status === 'failed';
 
-            {isLoadingRepos ? (
-              <div className="text-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
-                <p className="text-gray-400">Loading repositories...</p>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {repositories.map((repo) => {
-                  const repoName = repo.github_url.split('/').pop()?.replace('.git', '') || 'Repository';
-                  const fileCount = repo.repo_metadata?.total_files || 0;
-                  const canReingest = repo.status === 'completed' || repo.status === 'failed';
+              return (
+                <div
+                  key={repo.id}
+                  onClick={() => router.push(`/repo/${repo.id}`)}
+                  className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-5 hover:border-purple-500/50 transition-all cursor-pointer group"
+                >
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-lg text-white mb-1 truncate group-hover:text-purple-400 transition-colors">
+                      {repoName}
+                    </h3>
+                    <p className="text-sm text-gray-400 truncate">{repo.github_url}</p>
+                  </div>
 
-                  return (
-                    <div
-                      key={repo.id}
-                      onClick={() => router.push(`/repo/${repo.id}`)}
-                      className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-5 hover:border-purple-500/50 transition-all cursor-pointer group"
-                    >
-                      <div className="mb-3">
-                        <h3 className="font-semibold text-lg text-white mb-1 truncate group-hover:text-purple-400 transition-colors">
-                          {repoName}
-                        </h3>
-                        <p className="text-sm text-gray-400 truncate">{repo.github_url}</p>
-                      </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                    <div className="flex items-center gap-1">
+                      <FileCode className="w-4 h-4" />
+                      {fileCount} files
+                    </div>
+                  </div>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-                        <div className="flex items-center gap-1">
-                          <FileCode className="w-4 h-4" />
-                          {fileCount} files
-                        </div>
-                      </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`text-xs px-2 py-1 rounded ${repo.status === 'completed' ? 'bg-green-900/30 text-green-400 border border-green-800' :
+                      repo.status === 'processing' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800' :
+                        repo.status === 'failed' ? 'bg-red-900/30 text-red-400 border border-red-800' :
+                          'bg-gray-800 text-gray-400 border border-gray-700'
+                      }`}>
+                      {repo.status}
+                    </span>
 
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`text-xs px-2 py-1 rounded ${repo.status === 'completed' ? 'bg-green-900/30 text-green-400 border border-green-800' :
-                          repo.status === 'processing' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800' :
-                            repo.status === 'failed' ? 'bg-red-900/30 text-red-400 border border-red-800' :
-                              'bg-gray-800 text-gray-400 border border-gray-700'
-                          }`}>
-                          {repo.status}
-                        </span>
+                    <div className="flex gap-1">
+                      {canReingest && (
+                        <div className="relative" ref={reingestMenuRepoId === repo.id ? menuRef : null}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReingestMenuRepoId(reingestMenuRepoId === repo.id ? null : repo.id);
+                            }}
+                            disabled={isReingesting === repo.id}
+                            className="flex items-center gap-1 p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-950/20 rounded transition-colors disabled:opacity-50"
+                            title="Re-index repository"
+                          >
+                            <RefreshCw className={`w-4 h-4 ${isReingesting === repo.id ? 'animate-spin' : ''}`} />
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
 
-                        <div className="flex gap-1">
-                          {canReingest && (
-                            <div className="relative" ref={reingestMenuRepoId === repo.id ? menuRef : null}>
+                          {reingestMenuRepoId === repo.id && (
+                            <div
+                              className="absolute right-0 bottom-full mb-1 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setReingestMenuRepoId(reingestMenuRepoId === repo.id ? null : repo.id);
-                                }}
-                                disabled={isReingesting === repo.id}
-                                className="flex items-center gap-1 p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-950/20 rounded transition-colors disabled:opacity-50"
-                                title="Re-index repository"
+                                onClick={(e) => handleReingest(repo.id, true, e)}
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
                               >
-                                <RefreshCw className={`w-4 h-4 ${isReingesting === repo.id ? 'animate-spin' : ''}`} />
-                                <ChevronDown className="w-3 h-3" />
-                              </button>
-
-                              {reingestMenuRepoId === repo.id && (
-                                <div
-                                  className="absolute right-0 bottom-full mb-1 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <button
-                                    onClick={(e) => handleReingest(repo.id, true, e)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
-                                  >
-                                    <Zap className="w-4 h-4 text-yellow-400" />
-                                    <div>
-                                      <div className="text-sm font-medium text-white">Quick Update</div>
-                                      <div className="text-xs text-gray-400">Only changed files</div>
-                                    </div>
-                                  </button>
-                                  <div className="border-t border-gray-700" />
-                                  <button
-                                    onClick={(e) => handleReingest(repo.id, false, e)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
-                                  >
-                                    <RotateCcw className="w-4 h-4 text-blue-400" />
-                                    <div>
-                                      <div className="text-sm font-medium text-white">Full Re-index</div>
-                                      <div className="text-xs text-gray-400">Re-process all files</div>
-                                    </div>
-                                  </button>
+                                <Zap className="w-4 h-4 text-yellow-400" />
+                                <div>
+                                  <div className="text-sm font-medium text-white">Quick Update</div>
+                                  <div className="text-xs text-gray-400">Only changed files</div>
                                 </div>
-                              )}
+                              </button>
+                              <div className="border-t border-gray-700" />
+                              <button
+                                onClick={(e) => handleReingest(repo.id, false, e)}
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
+                              >
+                                <RotateCcw className="w-4 h-4 text-blue-400" />
+                                <div>
+                                  <div className="text-sm font-medium text-white">Full Re-index</div>
+                                  <div className="text-xs text-gray-400">Re-process all files</div>
+                                </div>
+                              </button>
                             </div>
                           )}
-
-                          <button
-                            onClick={(e) => handleDelete(repo.id, e)}
-                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-950/20 rounded transition-colors"
-                            title="Delete repository"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
-                      </div>
+                      )}
+
+                      <button
+                        onClick={(e) => handleDelete(repo.id, e)}
+                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-950/20 rounded transition-colors"
+                        title="Delete repository"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
-
       </div>
-    </div>
+    )
+  }
+
+      </div >
+    </div >
   );
 }
 
