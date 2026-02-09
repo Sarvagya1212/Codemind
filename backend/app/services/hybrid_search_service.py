@@ -40,6 +40,7 @@ class SearchResult:
     source: str  # "bm25", "dense", or "hybrid"
     bm25_rank: Optional[int] = None
     dense_rank: Optional[int] = None
+    original_similarity: float = 0.0  # Original dense embedding similarity for confidence checks
 
 
 class HybridSearchService:
@@ -214,6 +215,7 @@ class HybridSearchService:
                 content=chunk.get("content", ""),
                 metadata=chunk.get("metadata", {}),
                 score=chunk.get("similarity", 0),
+                original_similarity=chunk.get("similarity", 0),  # PRESERVE original similarity
                 source="dense",
                 dense_rank=rank
             ))
@@ -262,6 +264,8 @@ class HybridSearchService:
                 doc_map[doc_id] = result
             else:
                 doc_map[doc_id].dense_rank = result.dense_rank
+                # PRESERVE the original similarity from dense results
+                doc_map[doc_id].original_similarity = result.original_similarity
         
         # Sort by RRF score
         sorted_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
@@ -270,7 +274,8 @@ class HybridSearchService:
         results = []
         for doc_id in sorted_ids[:top_k]:
             result = doc_map[doc_id]
-            result.score = rrf_scores[doc_id]
+            result.score = rrf_scores[doc_id]  # RRF score
+            # original_similarity is preserved from dense results
             result.source = "hybrid"
             results.append(result)
         
@@ -339,13 +344,14 @@ class HybridSearchService:
         
         # Stage 4: Cross-encoder reranking
         if hybrid_results:
-            # Convert to format expected by reranker
+            # Convert to format expected by reranker, PRESERVE original_similarity
             chunks = [
                 {
                     "id": r.id,
                     "content": r.content,
                     "metadata": r.metadata,
-                    "similarity": r.score
+                    "similarity": r.score,
+                    "original_similarity": r.original_similarity  # PRESERVE THIS!
                 }
                 for r in hybrid_results
             ]
@@ -357,7 +363,7 @@ class HybridSearchService:
                 top_k=final_top_k
             )
             
-            # Convert back to SearchResult
+            # Convert back to SearchResult, PRESERVE original_similarity
             results = []
             for r in reranked:
                 results.append(SearchResult(
@@ -365,6 +371,7 @@ class HybridSearchService:
                     content=r.get("content", ""),
                     metadata=r.get("metadata", {}),
                     score=r.get("rerank_score", r.get("similarity", 0)),
+                    original_similarity=r.get("original_similarity", 0.0),  # PRESERVE!
                     source="hybrid+rerank"
                 ))
             
@@ -412,7 +419,8 @@ def hybrid_search(
             "id": r.id,
             "content": r.content,
             "metadata": r.metadata,
-            "similarity": r.score,
+            "similarity": r.original_similarity,  # USE ORIGINAL for confidence checks!
+            "score": r.score,  # RRF or reranker score
             "source": r.source,
             "bm25_rank": r.bm25_rank,
             "dense_rank": r.dense_rank
