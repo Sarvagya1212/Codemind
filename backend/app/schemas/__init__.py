@@ -15,7 +15,8 @@ from .repository import (
     SourceReference,
     ErrorResponse,
     CodeSearchRequest,      
-    CodeChunkResponse       
+    CodeChunkResponse,
+    ReingestRequest
 )
 
 __all__ = [
@@ -28,5 +29,6 @@ __all__ = [
     "SourceReference",
     "ErrorResponse",
     "CodeSearchRequest",    
-    "CodeChunkResponse"     
+    "CodeChunkResponse",
+    "ReingestRequest"
 ]

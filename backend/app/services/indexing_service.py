@@ -226,7 +226,7 @@ class IndexingService:
                 print(f"   This is the slowest step (~0.2s per chunk)")
                 step_start = time.time()
                 
-                self._generate_embeddings(all_chunks, repo_id, db, job)
+                self._generate_embeddings(all_chunks, repo_id, db, job, incremental=incremental)
                 
                 job.progress = 0.95
                 db.commit()
@@ -415,8 +415,11 @@ class IndexingService:
         return all_chunks, all_symbols
     
     def _save_file(self, file_info: Dict, repo_id: int, db: Session) -> CodeFile:
-        """Save file to database"""
+        """Save file to database with content hash for incremental indexing."""
         try:
+            # Compute content hash for change detection
+            content_hash = hashlib.sha256(file_info['content'].encode('utf-8')).hexdigest()
+            
             existing_file = db.query(CodeFile).filter(
                 CodeFile.repo_id == repo_id,
                 CodeFile.file_path == file_info['file_path']
@@ -425,12 +428,14 @@ class IndexingService:
             if existing_file:
                 code_file = existing_file
                 code_file.content = file_info['content']
+                code_file.content_hash = content_hash  # Update hash
                 code_file.file_metadata = file_info['metadata']
             else:
                 code_file = CodeFile(
                     repo_id=repo_id,
                     file_path=file_info['file_path'],
                     content=file_info['content'],
+                    content_hash=content_hash,  # Store hash
                     language=file_info['language'],
                     file_metadata=file_info['metadata']
                 )
@@ -463,25 +468,42 @@ class IndexingService:
         repo_id: int,
         db: Session
     ) -> List[Dict]:
-        """Filter files that have changed"""
+        """
+        Filter files that have changed using stored content hashes.
+        
+        This is O(1) per file lookup using the indexed content_hash column,
+        instead of O(n) content comparison. Critical for large repositories.
+        """
         changed_files = []
+        new_files = []
+        unchanged_count = 0
+        
+        # Build a hash map of existing files for O(1) lookup
+        existing_files = db.query(CodeFile.file_path, CodeFile.content_hash).filter(
+            CodeFile.repo_id == repo_id
+        ).all()
+        existing_hashes = {f.file_path: f.content_hash for f in existing_files}
         
         for file_info in parsed_files:
-            file_hash = hashlib.sha256(file_info['content'].encode()).hexdigest()
+            file_path = file_info['file_path']
+            new_hash = hashlib.sha256(file_info['content'].encode('utf-8')).hexdigest()
             
-            existing_file = db.query(CodeFile).filter(
-                CodeFile.repo_id == repo_id,
-                CodeFile.file_path == file_info['file_path']
-            ).first()
-            
-            if not existing_file:
+            if file_path not in existing_hashes:
+                # New file
+                new_files.append(file_info)
+            elif existing_hashes[file_path] != new_hash:
+                # Changed file (hash mismatch)
                 changed_files.append(file_info)
             else:
-                existing_hash = hashlib.sha256(existing_file.content.encode()).hexdigest()
-                if existing_hash != file_hash:
-                    changed_files.append(file_info)
+                # Unchanged file (hash matches)
+                unchanged_count += 1
         
-        return changed_files
+        print(f"   📊 Change detection results:")
+        print(f"      - New files: {len(new_files)}")
+        print(f"      - Modified files: {len(changed_files)}")
+        print(f"      - Unchanged files: {unchanged_count}")
+        
+        return new_files + changed_files
     
     def _store_chunks(self, chunks: List[Dict], repo_id: int, db: Session):
         """Store chunks in database"""
@@ -554,25 +576,67 @@ class IndexingService:
         chunks: List[Dict],
         repo_id: int,
         db: Session,
-        job: IndexJob
+        job: IndexJob,
+        incremental: bool = False
     ):
-        """Generate embeddings and store in ChromaDB"""
+        """
+        Generate embeddings and store in ChromaDB.
+        
+        Supports incremental updates by only removing embeddings for changed files
+        instead of deleting the entire collection.
+        
+        Args:
+            chunks: List of chunk dictionaries to embed
+            repo_id: Repository ID
+            db: Database session
+            job: Index job for progress tracking
+            incremental: If True, only update affected files (not full re-index)
+        """
         if not chunks:
             return
         
         collection_name = f"repo_{repo_id}_chunks"
         
-        # Delete existing collection
-        try:
-            chroma_client.delete_collection(name=collection_name)
-        except:
-            pass
-        
-        # Create new collection
-        collection = chroma_client.create_collection(
-            name=collection_name,
-            metadata={"repo_id": str(repo_id)}
-        )
+        if incremental:
+            # INCREMENTAL MODE: Only delete embeddings for changed files
+            try:
+                collection = chroma_client.get_collection(name=collection_name)
+                
+                # Get unique file_ids that are being re-indexed
+                affected_file_ids = list(set(str(c['file_id']) for c in chunks))
+                
+                if affected_file_ids:
+                    # Delete only embeddings for affected files
+                    print(f"   🗑️  Removing {len(affected_file_ids)} file(s) from vector store...")
+                    for file_id in affected_file_ids:
+                        try:
+                            collection.delete(where={"file_id": int(file_id)})
+                        except Exception as e:
+                            # Fallback: try string comparison
+                            try:
+                                collection.delete(where={"file_id": file_id})
+                            except:
+                                pass
+                    print(f"   ✅ Removed embeddings for affected files")
+                    
+            except Exception as e:
+                print(f"   ⚠️  Collection not found, creating new: {e}")
+                collection = chroma_client.create_collection(
+                    name=collection_name,
+                    metadata={"repo_id": str(repo_id)}
+                )
+        else:
+            # FULL RE-INDEX MODE: Delete and recreate entire collection
+            try:
+                chroma_client.delete_collection(name=collection_name)
+                print(f"   🗑️  Deleted existing collection for full re-index")
+            except:
+                pass
+            
+            collection = chroma_client.create_collection(
+                name=collection_name,
+                metadata={"repo_id": str(repo_id)}
+            )
         
         # Process in batches
         batch_size = 50

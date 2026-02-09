@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-02-09T13:51:45.223967",
+  "repo_id": 7,
+  "config": {
+    "top_k": 5
+  },
+  "aggregate": {
+    "n_tests": 5,
+    "retrieval": {
+      "recall_at_k": 0.25,
+      "precision_at_k": 0.24,
+      "mrr": 0.33999999999999997
+    },
+    "generation": {
+      "groundedness": 0.30373813172894876,
+      "answer_correctness": 0.65
+    },
+    "latency": {
+      "avg_total_ms": 65920.20144462585,
+      "avg_retrieval_ms": 2133.1396102905273,
+      "avg_reranking_ms": 0.0,
+      "avg_generation_ms": 63787.06183433533
+    }
+  },
+  "details": [
+    {
+      "query": "How does authentication work in this codebase?",
+      "category": "authentication",
+      "retrieval": {
+        "recall": 0.25,
+        "precision": 0.4,
+        "mrr": 1.0,
+        "files": [
+          "SpringSecurity.java",
+          "SpringSecurity.java",
+          "UserController.java",
+          "JournalEntryController.java",
+          "UserController.java"
+        ]
+      },
+      "generation": {
+        "groundedness": 0.41624365482233505,
+        "correctness": 0.75
+      },
+      "latency_ms": 126606.91738128662,
+      "error": null
+    },
+    {
+      "query": "Where are the API endpoints defined?",
+      "category": "api",
+      "retrieval": {
+        "recall": 0.75,
+        "precision": 0.6,
+        "mrr": 0.5,
+        "files": [
+          "SpringSecurity.java",
+          "AdminController.java",
+          "UserController.java",
+          "JournalEntryController.java",
+          "SpringSecurity.java"
+        ]
+      },
+      "generation": {
+        "groundedness": 0.2459016393442623,
+        "correctness": 0.5
+      },
+      "latency_ms": 48528.46646308899,
+      "error": null
+    },
+    {
+      "query": "How is the database connection configured?",
+      "category": "database",
+      "retrieval": {
+        "recall": 0.25,
+        "precision": 0.2,
+        "mrr": 0.2,
+        "files": [
+          "application.yml",
+          "SpringSecurity.java",
+          "JournalEntryController.java",
+          "AdminController.java",
+          "CorsConfig.java"
+        ]
+      },
+      "generation": {
+        "groundedness": 0.36809815950920244,
+        "correctness": 0.6666666666666666
+      },
+      "latency_ms": 50635.96320152283,
+      "error": null
+    },
+    {
+      "query": "What models or entities are defined?",
+      "category": "models",
+      "retrieval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "mrr": 0.0,
+        "files": [
+          "AdminController.java",
+          "UserRepository.java",
+          "JournalEntryRepository.java",
+          "User.java",
+          "JournalEntry.java"
+        ]
+      },
+      "generation": {
+        "groundedness": 0.2484472049689441,
+        "correctness": 0.3333333333333333
+      },
+      "latency_ms": 54260.19334793091,
+      "error": null
+    },
+    {
+      "query": "How are errors handled?",
+      "category": "error_handling",
+      "retrieval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "mrr": 0.0,
+        "files": [
+          "JournalEntryService.java",
+          "SpringSecurity.java",
+          "UserService.java",
+          "SpringSecurity.java",
+          "JournalEntryController.java"
+        ]
+      },
+      "generation": {
+        "groundedness": 0.24,
+        "correctness": 1.0
+      },
+      "latency_ms": 49569.46682929993,
+      "error": null
+    }
+  ]
+}

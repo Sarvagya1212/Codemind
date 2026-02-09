@@ -281,8 +281,8 @@ export default function ChatArea({ messages, onSendMessage, isLoading }: ChatAre
                         key={style}
                         onClick={() => setPromptStyle(style)}
                         className={`p-3 rounded-lg border text-left transition-all ${promptStyle === style
-                            ? 'bg-indigo-600 border-indigo-500 text-white'
-                            : 'bg-[#1e212b] border-gray-700 text-gray-400 hover:border-indigo-500/50'
+                          ? 'bg-indigo-600 border-indigo-500 text-white'
+                          : 'bg-[#1e212b] border-gray-700 text-gray-400 hover:border-indigo-500/50'
                           }`}
                       >
                         <div className="text-lg mb-1">{promptStyleLabels[style].icon}</div>
@@ -356,7 +356,7 @@ export default function ChatArea({ messages, onSendMessage, isLoading }: ChatAre
           </div>
 
           <div className="text-center mt-3">
-            <span className="text-[10px] text-gray-600 font-medium tracking-widest uppercase">
+            <span className="text-[12px] text-gray-600 font-medium tracking-widest uppercase">
               Powered by Ollama • {promptStyleLabels[promptStyle].label} Mode • Top-{topK} Chunks
             </span>
           </div>

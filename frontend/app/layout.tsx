@@ -22,9 +22,9 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           {/* Header */}
           <header className="border-b border-border bg-card">
-            <div className="container mx-auto px-4 py-4">
+            <div className="container mx-auto px-2 py-12">
               <div className="flex items-center justify-between">
-                <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition">
+                <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition">
                   <div className="bg-primary p-2 rounded-lg">
                     <Code2 className="h-6 w-6 text-primary-foreground" />
                   </div>

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import traceback
 import json
 import os      
@@ -19,7 +19,8 @@ from app.schemas import (
     SourceReference,
     HealthCheckResponse,
     CodeSearchRequest,
-    CodeChunkResponse
+    CodeChunkResponse,
+    ReingestRequest
 )
 from app.services.github_service import (
     clone_repository,
@@ -79,14 +80,19 @@ def process_repository_ingestion(repo_id: int, github_url: str, db: Session):
         if not parsed_files:
             raise Exception("No code files found in repository")
         
-        # Step 3: Save code files to database
+        # Step 3: Save code files to database (with content hashes for incremental indexing)
+        import hashlib
         print(f"\n💾 Step 3: Saving {len(parsed_files)} files to database...")
         file_id_map = {}
         for idx, file_info in enumerate(parsed_files):
+            # Compute content hash for incremental indexing support
+            content_hash = hashlib.sha256(file_info['content'].encode('utf-8')).hexdigest()
+            
             code_file = CodeFile(
                 repo_id=repo_id,
                 file_path=file_info['file_path'],
                 content=file_info['content'],
+                content_hash=content_hash,  # Store hash for incremental indexing
                 language=file_info['language'],
                 file_metadata=file_info['metadata']
             )
@@ -709,18 +715,23 @@ async def check_rag_health():
 async def reingest_repository(
     repo_id: int,
     background_tasks: BackgroundTasks,
+    request: Optional[ReingestRequest] = None,
     db: Session = Depends(get_db)
 ):
     """
     Re-ingest an existing repository.
     
-    This will:
-    1. Delete old embeddings and code files
-    2. Re-clone the repository
-    3. Re-parse and re-embed everything
+    Supports two modes:
+    - **Incremental (default)**: Only re-indexes changed files using content hashes.
+      Much faster for repositories with minor updates.
+    - **Full**: Deletes everything and re-indexes from scratch.
     
-    Useful when repository code has been updated.
+    Use incremental=True (or omit) for quick updates.
+    Use incremental=False for a complete re-index.
     """
+    from app.services.indexing_service import IndexingService
+    from app.schemas.repository import ReingestRequest
+    
     try:
         repo = db.query(Repository).filter(Repository.id == repo_id).first()
         
@@ -739,55 +750,96 @@ async def reingest_repository(
                 message="Repository is already being processed."
             )
         
-        # Delete old data
-        from app.models import CodeChunk, Symbol, RepositoryFile
-        from app.services.embedding_service import chroma_client
+        # Get request parameters (default to incremental=True)
+        if request is None:
+            request = ReingestRequest()
+        
+        incremental = request.incremental if request.incremental is not None else True
+        force = request.force if request.force is not None else False
         
         print(f"\n🔄 Re-ingesting repository {repo_id}...")
+        print(f"   Mode: {'INCREMENTAL' if incremental else 'FULL RE-INDEX'}")
+        print(f"   Force: {force}")
         
-        # Delete ChromaDB collection
-        try:
-            chroma_client.delete_collection(name=f"repo_{repo_id}")
-            print(f"✅ Deleted old embeddings")
-        except:
-            pass
-        
-        # Delete related records
-        db.query(Symbol).filter(Symbol.repo_id == repo_id).delete()
-        db.query(CodeChunk).filter(CodeChunk.repo_id == repo_id).delete()
-        db.query(RepositoryFile).filter(RepositoryFile.repo_id == repo_id).delete()
-        db.query(CodeFile).filter(CodeFile.repo_id == repo_id).delete()
-        db.query(ChatMessage).filter(ChatMessage.repo_id == repo_id).delete()
-        
-        # Delete local files
-        if repo.local_path and os.path.exists(repo.local_path):
+        if incremental:
+            # INCREMENTAL MODE: Use IndexingService for efficient updates
+            indexing_service = IndexingService()
+            
+            # Start incremental indexing in background
+            async def run_incremental():
+                try:
+                    await indexing_service.start_indexing(
+                        repo_id=repo_id,
+                        db=db,
+                        branch="main",
+                        force=force,
+                        incremental=True
+                    )
+                except Exception as e:
+                    print(f"❌ Incremental indexing failed: {e}")
+                    repo = db.query(Repository).filter(Repository.id == repo_id).first()
+                    if repo:
+                        repo.status = "failed"
+                        repo.repo_metadata = repo.repo_metadata or {}
+                        repo.repo_metadata["error"] = str(e)
+                        db.commit()
+            
+            background_tasks.add_task(run_incremental)
+            
+            return RepositoryIngestResponse(
+                id=repo.id,
+                github_url=repo.github_url,
+                status="processing",
+                message="⚡ Incremental re-indexing started. Only changed files will be processed."
+            )
+        else:
+            # FULL RE-INDEX MODE: Delete everything and re-process
+            from app.models import CodeChunk, Symbol, RepositoryFile
+            from app.services.embedding_service import chroma_client
+            
+            # Delete ChromaDB collection
             try:
-                shutil.rmtree(repo.local_path, ignore_errors=True)
+                chroma_client.delete_collection(name=f"repo_{repo_id}")
+                print(f"✅ Deleted old embeddings")
             except:
                 pass
-        
-        # Reset repository status
-        repo.status = "pending"
-        repo.repo_metadata = {"re_ingest": True}
-        repo.local_path = None
-        db.commit()
-        
-        print(f"✅ Cleaned old data for repository {repo_id}")
-        
-        # Start background processing
-        background_tasks.add_task(
-            process_repository_ingestion,
-            repo.id,
-            repo.github_url,
-            db
-        )
-        
-        return RepositoryIngestResponse(
-            id=repo.id,
-            github_url=repo.github_url,
-            status="pending",
-            message="Repository re-ingestion started. Processing in background."
-        )
+            
+            # Delete related records
+            db.query(Symbol).filter(Symbol.repo_id == repo_id).delete()
+            db.query(CodeChunk).filter(CodeChunk.repo_id == repo_id).delete()
+            db.query(RepositoryFile).filter(RepositoryFile.repo_id == repo_id).delete()
+            db.query(CodeFile).filter(CodeFile.repo_id == repo_id).delete()
+            db.query(ChatMessage).filter(ChatMessage.repo_id == repo_id).delete()
+            
+            # Delete local files
+            if repo.local_path and os.path.exists(repo.local_path):
+                try:
+                    shutil.rmtree(repo.local_path, ignore_errors=True)
+                except:
+                    pass
+            
+            # Reset repository status
+            repo.status = "pending"
+            repo.repo_metadata = {"re_ingest": True, "mode": "full"}
+            repo.local_path = None
+            db.commit()
+            
+            print(f"✅ Cleaned old data for repository {repo_id}")
+            
+            # Start background processing
+            background_tasks.add_task(
+                process_repository_ingestion,
+                repo.id,
+                repo.github_url,
+                db
+            )
+            
+            return RepositoryIngestResponse(
+                id=repo.id,
+                github_url=repo.github_url,
+                status="pending",
+                message="🔄 Full re-ingestion started. All files will be re-processed."
+            )
         
     except HTTPException:
         raise

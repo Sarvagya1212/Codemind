@@ -16,6 +16,20 @@ class RepositoryIngestRequest(BaseModel):
         }
 
 
+class ReingestRequest(BaseModel):
+    """Request schema for re-ingesting a repository"""
+    incremental: Optional[bool] = Field(True, description="If true, only re-index changed files (default). If false, full re-index.")
+    force: Optional[bool] = Field(False, description="Force re-indexing even if no changes detected")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "incremental": True,
+                "force": False
+            }
+        }
+
+
 class ChatRequest(BaseModel):
     """Request schema for chatting with a repository"""
     question: str = Field(..., min_length=1, description="User question about the codebase")

@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-02-09T14:01:48.199545",
+  "repo_id": 7,
+  "config": {
+    "use_reranker": true,
+    "top_k": 5,
+    "n_questions": 5
+  },
+  "aggregate": {
+    "recall_at_k": 0.4066666666666666,
+    "precision_at_k": 0.32,
+    "mrr": 0.4666666666666666,
+    "groundedness": 0.3595952915043091,
+    "correctness": 0.62,
+    "avg_latency_ms": 63170.16453742981
+  },
+  "by_category": {
+    "authentication": {
+      "recall": 0.4066666666666666,
+      "mrr": 0.4666666666666666,
+      "count": 5
+    }
+  },
+  "details": [
+    {
+      "id": "auth_01",
+      "category": "authentication",
+      "recall": 0.2,
+      "precision": 0.2,
+      "mrr": 0.25,
+      "groundedness": 0.32105263157894737,
+      "correctness": 0.8,
+      "latency_ms": 82334.97905731201,
+      "error": null
+    },
+    {
+      "id": "auth_02",
+      "category": "authentication",
+      "recall": 0.5,
+      "precision": 0.4,
+      "mrr": 0.3333333333333333,
+      "groundedness": 0.375,
+      "correctness": 1.0,
+      "latency_ms": 46619.35615539551,
+      "error": null
+    },
+    {
+      "id": "auth_03",
+      "category": "authentication",
+      "recall": 0.5,
+      "precision": 0.4,
+      "mrr": 0.5,
+      "groundedness": 0.3756345177664975,
+      "correctness": 0.5,
+      "latency_ms": 64175.83656311035,
+      "error": null
+    },
+    {
+      "id": "auth_04",
+      "category": "authentication",
+      "recall": 0.3333333333333333,
+      "precision": 0.2,
+      "mrr": 1.0,
+      "groundedness": 0.33962264150943394,
+      "correctness": 0.2,
+      "latency_ms": 50038.22088241577,
+      "error": null
+    },
+    {
+      "id": "auth_05",
+      "category": "authentication",
+      "recall": 0.5,
+      "precision": 0.4,
+      "mrr": 0.25,
+      "groundedness": 0.38666666666666666,
+      "correctness": 0.6,
+      "latency_ms": 72682.4300289154,
+      "error": null
+    }
+  ]
+}

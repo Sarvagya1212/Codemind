@@ -192,8 +192,10 @@ export const repositoryApi = {
     return response.data;
   },
 
-  reingest: async (id: number): Promise<RepositoryIngestResponse> => {
-    const response = await api.post(`/repos/${id}/reingest`);
+  reingest: async (id: number, options?: { incremental?: boolean }): Promise<RepositoryIngestResponse> => {
+    const response = await api.post(`/repos/${id}/reingest`, {
+      incremental: options?.incremental ?? true  // Default to incremental for speed
+    });
     return response.data;
   },
 
@@ -220,7 +222,7 @@ export const repositoryApi = {
     if (!request || typeof request !== 'object') {
       throw new Error('Invalid request object');
     }
-    
+
     if (!request.question || typeof request.question !== 'string' || !request.question.trim()) {
       throw new Error('Question is required and must be a non-empty string');
     }

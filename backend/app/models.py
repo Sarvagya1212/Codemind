@@ -58,10 +58,14 @@ class CodeFile(Base):
     content = Column(Text, nullable=False)
     language = Column(String(50), nullable=False, index=True)
     
+    # Content hash for incremental indexing (SHA256 = 64 hex chars)
+    content_hash = Column(String(64), nullable=True, index=True)
+    
     # Use file_metadata (same as database column)
     file_metadata = Column(JSON, default={})
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     repository = relationship("Repository", back_populates="code_files")
     

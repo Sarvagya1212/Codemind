@@ -13,7 +13,7 @@ from app.schemas.search import (
     IndexJobRequest, IndexJobStatus,
     SearchMode, MatchType
 )
-from app.services.hybrid_search_service import hybrid_search_service
+# from app.services.hybrid_search_service import hybrid_search_service  # TODO: Implement this service
 from app.services.indexing_service import indexing_service
 
 # Import ChromaDB client
@@ -184,13 +184,18 @@ async def search_code(
     
     try:
         # Perform search
-        results, total_results = await hybrid_search_service.search(
-            repo_id=repo_id,
-            query=q,
-            mode=mode,
-            filters=filters,
-            db=db
+        # TODO: Implement hybrid_search_service
+        raise HTTPException(
+            status_code=501,
+            detail="Code search API not yet implemented. Use /repos/{repo_id}/query endpoint for RAG-based queries."
         )
+        # results, total_results = await hybrid_search_service.search(
+        #     repo_id=repo_id,
+        #     query=q,
+        #     mode=mode,
+        #     filters=filters,
+        #     db=db
+        # )
         
         # Apply pagination
         start_idx = (page - 1) * per_page
