@@ -27,7 +27,7 @@ MMR_TOP_K = int(os.getenv("MMR_TOP_K", "6"))  # Compress to 6 chunks max
 
 # PHASE 6: GROUNDING PROTECTION
 # Confidence gate - prevents hallucinations on low-quality retrievals
-CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.35"))
+CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.15"))  # Lowered for small repos
 USE_CONFIDENCE_GATE = os.getenv("USE_CONFIDENCE_GATE", "true").lower() == "true"
 
 # PHASE 7: QUERY EXPANSION
