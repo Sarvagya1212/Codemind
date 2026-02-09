@@ -191,49 +191,54 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <div className="container mx-auto px-4 py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <Sparkles className="w-12 h-12 text-purple-500 mr-3" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-              CodeMind AI
-            </h1>
+        {/* Hero Section with Gradient Background */}
+        <div className="relative">
+          {/* Animated Gradient Mesh Background */}
+          <div className="absolute inset-0 bg-gradient-mesh pointer-events-none" aria-hidden="true"></div>
+
+          <div className="relative text-center mb-12 animate-fade-in">
+            <div className="flex items-center justify-center mb-6">
+              <Sparkles className="w-12 h-12 text-blue-500 mr-3 animate-pulse" />
+              <h1 className="text-5xl  font-bold text-white tracking-tight">
+                Chat with <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Your Codebase</span>
+              </h1>
+            </div>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Ingest any GitHub repository and have intelligent conversations about the code using AI-powered RAG technology.
+            </p>
           </div>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Ingest any GitHub repository and have intelligent conversations about the code using AI-powered RAG technology.
-          </p>
+
+          {/* Features Grid with Animated Cards */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto relative">
+            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up">
+              <Code2 className="w-10 h-10 text-blue-500 mb-3" />
+              <h3 className="text-lg font-semibold text-white mb-2">Code Analysis</h3>
+              <p className="text-gray-400 text-sm">
+                AI-powered analysis of your entire codebase structure and patterns
+              </p>
+            </div>
+
+            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up delay-100">
+              <MessageSquare className="w-10 h-10 text-green-500 mb-3" />
+              <h3 className="text-lg font-semibold text-white mb-2">Smart Conversations</h3>
+              <p className="text-gray-400 text-sm">
+                Ask questions in plain English and get contextual answers
+              </p>
+            </div>
+
+            <div className="glass rounded-lg p-6 shadow-card hover:shadow-card-hover transition-smooth animate-slide-up delay-200">
+              <Zap className="w-10 h-10 text-yellow-500 mb-3" />
+              <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
+              <p className="text-gray-400 text-sm">
+                Powered by advanced RAG technology for precise results
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
-          <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-6">
-            <Code2 className="w-10 h-10 text-blue-500 mb-3" />
-            <h3 className="text-lg font-semibold text-white mb-2">Code Analysis</h3>
-            <p className="text-gray-400 text-sm">
-              AI-powered analysis of your entire codebase structure and patterns
-            </p>
-          </div>
-
-          <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-6">
-            <MessageSquare className="w-10 h-10 text-green-500 mb-3" />
-            <h3 className="text-lg font-semibold text-white mb-2">Smart Conversations</h3>
-            <p className="text-gray-400 text-sm">
-              Ask questions in plain English and get contextual answers
-            </p>
-          </div>
-
-          <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-6">
-            <Zap className="w-10 h-10 text-yellow-500 mb-3" />
-            <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
-            <p className="text-gray-400 text-sm">
-              Powered by advanced RAG technology for precise results
-            </p>
-          </div>
-        </div>
-
-        {/* Main Card */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-2xl p-8 shadow-2xl">
+        {/* Main Card with Animation */}
+        <div className="max-w-2xl mx-auto mb-12 animate-scale-in delay-300">
+          <div className="glass rounded-2xl p-8 shadow-card">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="github-url" className="block text-sm font-medium text-gray-300 mb-2">
