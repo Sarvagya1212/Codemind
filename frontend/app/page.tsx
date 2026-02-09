@@ -198,12 +198,12 @@ export default function Home() {
 
           <div className="relative text-center mb-12 animate-fade-in">
             <div className="flex items-center justify-center mb-6">
-              <Sparkles className="w-12 h-12 text-blue-500 mr-3 animate-pulse" />
-              <h1 className="text-5xl  font-bold text-white tracking-tight">
-                Chat with <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Your Codebase</span>
+              <Sparkles className="w-10 h-10 text-blue-400 mr-3" />
+              <h1 className="text-4xl font-bold text-white tracking-tight">
+                Chat with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-blue-500">Your Codebase</span>
               </h1>
             </div>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
               Ingest any GitHub repository and have intelligent conversations about the code using AI-powered RAG technology.
             </p>
           </div>
