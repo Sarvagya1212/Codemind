@@ -284,12 +284,12 @@ export default function Home() {
 
               {/* Success Actions */}
               {currentStep === 'ready' && repoId && (
-                  <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
+                <div className="animate-fade-in">
+                  <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 mb-4">
                     <div className="flex items-center gap-2 text-green-400">
                       <CheckCircle2 className="w-5 h-5" />
-                      <p className="font-medium">Repository ingested successfully!</p>
+                      <span className="font-semibold">Repository Ready!</span>
                     </div>
-                    <p className="text-gray-400 text-sm mt-1">Choose what you'd like to do:</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -297,9 +297,9 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => router.push(`/repo/${repoId}`)}
-                      className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+                      className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm"
                     >
-                      <MessageSquare className="w-5 h-5" />
+                      <MessageSquare className="w-4 h-4" />
                       Chat with Code
                     </button>
 
@@ -307,166 +307,140 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => router.push(`/repo/${repoId}/files`)}
-                      className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+                      className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm"
                     >
-                      <FileCode className="w-5 h-5" />
+                      <FileCode className="w-4 h-4" />
                       View Files
                     </button>
                   </div>
                 </div>
               )}
 
-          {/* Submit Button */}
-          {currentStep === 'idle' && (
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-700 disabled:to-gray-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Start Ingesting
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          )}
-        </form>
-      </div>
-
-      <p className="text-center text-gray-500 text-sm mt-6">
-        Enter any public GitHub repository URL to start analyzing the code
-      </p>
-    </div>
-
-        {/* Repository List Section */ }
-  {
-    showRepoList && (
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">Your Repositories</h2>
-          <button
-            onClick={loadRepositories}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
-        </div>
-
-        {isLoadingRepos ? (
-          <div className="text-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
-            <p className="text-gray-400">Loading repositories...</p>
           </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {repositories.map((repo) => {
-              const repoName = repo.github_url.split('/').pop()?.replace('.git', '') || 'Repository';
-              const fileCount = repo.repo_metadata?.total_files || 0;
-              const canReingest = repo.status === 'completed' || repo.status === 'failed';
 
-              return (
-                <div
-                  key={repo.id}
-                  onClick={() => router.push(`/repo/${repo.id}`)}
-                  className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-5 hover:border-purple-500/50 transition-all cursor-pointer group"
-                >
-                  <div className="mb-3">
-                    <h3 className="font-semibold text-lg text-white mb-1 truncate group-hover:text-purple-400 transition-colors">
-                      {repoName}
-                    </h3>
-                    <p className="text-sm text-gray-400 truncate">{repo.github_url}</p>
+          {/* Repository List Section */}
+          {
+            showRepoList && (
+              <div className="max-w-6xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">Your Repositories</h2>
+                  <button
+                    onClick={loadRepositories}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh
+                  </button>
+                </div>
+
+                {isLoadingRepos ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+                    <p className="text-gray-400">Loading repositories...</p>
                   </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {repositories.map((repo) => {
+                      const repoName = repo.github_url.split('/').pop()?.replace('.git', '') || 'Repository';
+                      const fileCount = repo.repo_metadata?.total_files || 0;
+                      const canReingest = repo.status === 'completed' || repo.status === 'failed';
 
-                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-                    <div className="flex items-center gap-1">
-                      <FileCode className="w-4 h-4" />
-                      {fileCount} files
-                    </div>
-                  </div>
+                      return (
+                        <div
+                          key={repo.id}
+                          onClick={() => router.push(`/repo/${repo.id}`)}
+                          className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-lg p-5 hover:border-purple-500/50 transition-all cursor-pointer group"
+                        >
+                          <div className="mb-3">
+                            <h3 className="font-semibold text-lg text-white mb-1 truncate group-hover:text-purple-400 transition-colors">
+                              {repoName}
+                            </h3>
+                            <p className="text-sm text-gray-400 truncate">{repo.github_url}</p>
+                          </div>
 
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`text-xs px-2 py-1 rounded ${repo.status === 'completed' ? 'bg-green-900/30 text-green-400 border border-green-800' :
-                      repo.status === 'processing' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800' :
-                        repo.status === 'failed' ? 'bg-red-900/30 text-red-400 border border-red-800' :
-                          'bg-gray-800 text-gray-400 border border-gray-700'
-                      }`}>
-                      {repo.status}
-                    </span>
+                          <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                            <div className="flex items-center gap-1">
+                              <FileCode className="w-4 h-4" />
+                              {fileCount} files
+                            </div>
+                          </div>
 
-                    <div className="flex gap-1">
-                      {canReingest && (
-                        <div className="relative" ref={reingestMenuRepoId === repo.id ? menuRef : null}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setReingestMenuRepoId(reingestMenuRepoId === repo.id ? null : repo.id);
-                            }}
-                            disabled={isReingesting === repo.id}
-                            className="flex items-center gap-1 p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-950/20 rounded transition-colors disabled:opacity-50"
-                            title="Re-index repository"
-                          >
-                            <RefreshCw className={`w-4 h-4 ${isReingesting === repo.id ? 'animate-spin' : ''}`} />
-                            <ChevronDown className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-xs px-2 py-1 rounded ${repo.status === 'completed' ? 'bg-green-900/30 text-green-400 border border-green-800' :
+                              repo.status === 'processing' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800' :
+                                repo.status === 'failed' ? 'bg-red-900/30 text-red-400 border border-red-800' :
+                                  'bg-gray-800 text-gray-400 border border-gray-700'
+                              }`}>
+                              {repo.status}
+                            </span>
 
-                          {reingestMenuRepoId === repo.id && (
-                            <div
-                              className="absolute right-0 bottom-full mb-1 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                onClick={(e) => handleReingest(repo.id, true, e)}
-                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
-                              >
-                                <Zap className="w-4 h-4 text-yellow-400" />
-                                <div>
-                                  <div className="text-sm font-medium text-white">Quick Update</div>
-                                  <div className="text-xs text-gray-400">Only changed files</div>
+                            <div className="flex gap-1">
+                              {canReingest && (
+                                <div className="relative" ref={reingestMenuRepoId === repo.id ? menuRef : null}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setReingestMenuRepoId(reingestMenuRepoId === repo.id ? null : repo.id);
+                                    }}
+                                    disabled={isReingesting === repo.id}
+                                    className="flex items-center gap-1 p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-950/20 rounded transition-colors disabled:opacity-50"
+                                    title="Re-index repository"
+                                  >
+                                    <RefreshCw className={`w-4 h-4 ${isReingesting === repo.id ? 'animate-spin' : ''}`} />
+                                    <ChevronDown className="w-3 h-3" />
+                                  </button>
+
+                                  {reingestMenuRepoId === repo.id && (
+                                    <div
+                                      className="absolute right-0 bottom-full mb-1 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <button
+                                        onClick={(e) => handleReingest(repo.id, true, e)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
+                                      >
+                                        <Zap className="w-4 h-4 text-yellow-400" />
+                                        <div>
+                                          <div className="text-sm font-medium text-white">Quick Update</div>
+                                          <div className="text-xs text-gray-400">Only changed files</div>
+                                        </div>
+                                      </button>
+                                      <div className="border-t border-gray-700" />
+                                      <button
+                                        onClick={(e) => handleReingest(repo.id, false, e)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
+                                      >
+                                        <RotateCcw className="w-4 h-4 text-blue-400" />
+                                        <div>
+                                          <div className="text-sm font-medium text-white">Full Re-index</div>
+                                          <div className="text-xs text-gray-400">Re-process all files</div>
+                                        </div>
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                              </button>
-                              <div className="border-t border-gray-700" />
+                              )}
+
                               <button
-                                onClick={(e) => handleReingest(repo.id, false, e)}
-                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition-colors text-left"
+                                onClick={(e) => handleDelete(repo.id, e)}
+                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-950/20 rounded transition-colors"
+                                title="Delete repository"
                               >
-                                <RotateCcw className="w-4 h-4 text-blue-400" />
-                                <div>
-                                  <div className="text-sm font-medium text-white">Full Re-index</div>
-                                  <div className="text-xs text-gray-400">Re-process all files</div>
-                                </div>
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
-                          )}
+                          </div>
                         </div>
-                      )}
-
-                      <button
-                        onClick={(e) => handleDelete(repo.id, e)}
-                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-950/20 rounded transition-colors"
-                        title="Delete repository"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                      );
+                    })}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    )
-  }
+                )}
+              </div>
+            )
+          }
 
+        </div >
       </div >
-    </div >
-  );
+      );
 }
 
