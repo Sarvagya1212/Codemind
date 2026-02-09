@@ -254,7 +254,70 @@ def truncate_context(context: str, max_length: int = MAX_CONTEXT_LENGTH) -> Tupl
     # Fallback: hard truncate with warning
     return context[:max_length] + "\n\n...[Context truncated for length]...", True
 
-def format_context(chunks: List[Dict], include_similarity: bool = False) -> str:
+def summarize_file_chunks(chunks: List[Dict], language: str) -> str:
+    """
+    Extract semantic summary from code chunks (imports, classes, functions).
+    This reduces cognitive load on the LLM by providing structured info instead of raw code.
+    """
+    import re
+    
+    combined_code = "\n".join([c['content'] for c in chunks])
+    summary_items = []
+    
+    # Extract imports (Python, JS, TS, Java, etc.)
+    if language in ['python', 'py']:
+        imports = re.findall(r'^(?:from\s+[\w.]+\s+)?import\s+([\w,\s.]+)', combined_code, re.MULTILINE)
+        if imports:
+            summary_items.append(f"Imports: {', '.join([i.strip() for i in imports[:5]])}")
+        
+        # Extract class definitions
+        classes = re.findall(r'^class\s+(\w+)', combined_code, re.MULTILINE)
+        if classes:
+            summary_items.append(f"Classes: {', '.join(classes[:5])}")
+        
+        #Extract function definitions
+        functions = re.findall(r'^(?:async\s+)?def\s+(\w+)', combined_code, re.MULTILINE)
+        if functions:
+            summary_items.append(f"Functions: {', '.join(functions[:8])}")
+    
+    elif language in ['javascript', 'typescript', 'js', 'ts', 'jsx', 'tsx']:
+        # Extract imports
+        imports = re.findall(r'import\s+.*?\s+from\s+[\'"](.+?)[\'"]', combined_code)
+        if imports:
+            summary_items.append(f"Imports: {', '.join(imports[:5])}")
+        
+        # Extract classes
+        classes = re.findall(r'class\s+(\w+)', combined_code)
+        if classes:
+            summary_items.append(f"Classes: {', '.join(classes[:5])}")
+        
+        # Extract functions (including arrow functions)
+        functions = re.findall(r'(?:function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s*)?\()', combined_code)
+        func_names = [f[0] or f[1] for f in functions if f[0] or f[1]]
+        if func_names:
+            summary_items.append(f"Functions: {', '.join(func_names[:8])}")
+    
+    elif language in ['java', 'cpp', 'c++', 'c', 'go']:
+        # Extract classes/structs
+        classes = re.findall(r'(?:class|struct)\s+(\w+)', combined_code)
+        if classes:
+            summary_items.append(f"Classes/Structs: {', '.join(classes[:5])}")
+        
+        # Extract function signatures
+        functions = re.findall(r'(?:public|private|protected|static)?\s*\w+\s+(\w+)\s*\(', combined_code)
+        if functions:
+            summary_items.append(f"Functions: {', '.join(functions[:8])}")
+    
+    # If no structural info found, provide a generic summary
+    if not summary_items:
+        lines = combined_code.split('\n')
+        non_empty = [l.strip() for l in lines if l.strip() and not l.strip().startswith('#')]
+        if non_empty:
+            summary_items.append(f"Contains {len(non_empty)} lines of {language} code")
+    
+    return "\n".join([f"- {item}" for item in summary_items])
+
+def format_context(chunks: List[Dict], include_similarity: bool = False, use_summaries: bool = False) -> str:
     """
     Format chunks with improved structure and optional similarity scores.
     """
@@ -297,14 +360,23 @@ def format_context(chunks: List[Dict], include_similarity: bool = False) -> str:
         if include_similarity and data["max_similarity"] > 0:
             similarity_label = f" (Relevance: {data['max_similarity']:.2f})"
         
-        file_content = "\n...[skipped code]...\n".join([c['content'] for c in sorted_chunks])
         
-        formatted_parts.append(
-            f"### File: {file_path}{similarity_label}\n"
-            f"```{data['language']}\n"
-            f"{file_content}\n"
-            f"```"
-        )
+        if use_summaries:
+            # Use semantic summary instead of raw code
+            file_summary = summarize_file_chunks(sorted_chunks, data['language'])
+            formatted_parts.append(
+                f"### File: {file_path}{similarity_label}\n"
+                f"{file_summary}"
+            )
+        else:
+            # Original behavior: show raw code
+            file_content = "\n...[skipped code]...\n".join([c['content'] for c in sorted_chunks])
+            formatted_parts.append(
+                f"### File: {file_path}{similarity_label}\n"
+                f"```{data['language']}\n"
+                f"{file_content}\n"
+                f"```"
+            )
     
     context = "\n\n".join(formatted_parts)
     truncated_context, was_truncated = truncate_context(context)
@@ -320,9 +392,9 @@ def get_prompt_template(style: str = "senior_dev") -> ChatPromptTemplate:
         style: Prompt style ("senior_dev", "concise", "educational")
     """
     templates = {
-        "senior_dev": """You are CodeMind AI, an expert Senior Software Engineer and Mentor with deep expertise in code analysis and documentation.
+        "senior_dev": """You are a repository analysis assistant.
 
-CONTEXT FROM REPOSITORY:
+CONTEXT:
 {context}
 
 CHAT HISTORY:
@@ -330,63 +402,22 @@ CHAT HISTORY:
 
 USER QUESTION: {question}
 
-CRITICAL GROUNDING RULES (PHASE 6):
-- **ALWAYS cite file paths** when discussing code (e.g., "In `src/auth/login.py`...")
-- **DO NOT answer if context is insufficient** - admit when you don't have the information
-- **NEVER make assumptions** about code not shown in the context
-- **Stay grounded** - every statement must be backed by the provided code
+Follow this process strictly:
 
-INSTRUCTIONS:
-1. **Analyze the Big Picture**: Start with a high-level explanation of what the relevant code does and its purpose within the system.
+1. **Identify Relevant Files**: List the file paths from the context that are relevant to the question.
+2. **Extract Evidence**: Quote the exact lines of code that support your answer.
+3. **Architectural Interpretation**: Infer the architecture or logic ONLY from the evidence.
+4. **Confidence Level**: State your confidence (High/Medium/Low) based on the available context.
+5. **Final Answer**: Provide the direct answer to the user's question based on the above steps.
 
-2. **Detailed Technical Breakdown**:
-   - Explain the logic, architecture, or patterns used
-   - **CITE file paths** for every code reference (e.g., "In `app/models.py`, the `User` class...")
-   - Reference specific functions, classes, or variables using `code blocks`
-   - Use **bold** for key concepts
-   - Provide code examples when helpful
+If the evidence is weak, say "architecture not fully inferable" or "context insufficient".
+**Never guess.** Ground every statement in the provided code.
 
-3. **Evidence & Sources**: 
-   - **MANDATORY**: Cite specific file names for every claim
-   - Include line contexts when available
-   - If referencing multiple files, list them
-
-4. **Best Practices**: If relevant, mention design patterns, potential improvements, or common pitfalls.
-
-5. **Formatting**: Use clear Markdown structure with headers, lists, and code blocks.
-
-**If the context doesn't contain information to answer the question:**
-- Clearly state "I don't have sufficient context to answer this question"
-- Explain what's missing
-- Suggest what to ask instead""",
-
-        "concise": """You are CodeMind AI, an expert code analyst providing concise, accurate answers.
-
-CONTEXT: {context}
-
-HISTORY: {chat_history}
-
-QUESTION: {question}
-
-Provide a clear, direct answer using the code context. Be concise but complete. Use code blocks and bold for emphasis. Cite specific files when referencing code.""",
-
-        "educational": """You are CodeMind AI, a patient coding mentor helping developers learn.
-
-CONTEXT: {context}
-
-HISTORY: {chat_history}
-
-QUESTION: {question}
-
-Explain the code in an educational way:
-1. **What**: Describe what the code does
-2. **Why**: Explain the reasoning behind the approach
-3. **How**: Break down the implementation step-by-step
-4. **Learn More**: Suggest related concepts to explore
-
-Use simple language, examples, and encourage questions. Always cite the specific files you're referencing."""
+Return structured output.""",
     }
     
+    # NOTE: Multi-step chain (use_multistep=True) is now the default.
+    # This template is only used as a fallback if use_multistep=False.
     template = templates.get(style, templates["senior_dev"])
     return ChatPromptTemplate.from_template(template)
 
@@ -413,13 +444,15 @@ def format_chat_history(chat_history: List[Dict], max_messages: int = 3) -> str:
 def query_codebase(
     repo_id: int,
     query: str,
-    top_k: int = 8,  # Changed from 5 to 8 for better coverage
+    top_k: int = 8,
     include_sources: bool = True,
     rerank: bool = True,
     chat_history: List[Dict] = None,
     prompt_style: str = "senior_dev",
     include_metadata: bool = True,
-    use_hybrid: bool = True  # NEW: Enable hybrid search (BM25 + Dense + RRF)
+    use_hybrid: bool = True,  # Enable hybrid search
+    use_summaries: bool = True,  # Use semantic summaries (Priority 2)
+    use_multistep: bool = True  # NEW: 3-step chain (Priorities 3-8)
 ) -> Dict:
     """
     Query the codebase with hybrid search support.
@@ -490,20 +523,51 @@ def query_codebase(
         
         print(f"✅ Confidence check passed: top_score={top_score:.3f} >= threshold={CONFIDENCE_THRESHOLD}")
 
-        context_str = format_context(similar_chunks, include_similarity=False)
+        context_str = format_context(similar_chunks, include_similarity=False, use_summaries=use_summaries)
         history_str = format_chat_history(chat_history or [])
 
         print(f"🤖 Generating answer using {OLLAMA_MODEL}...")
         
-        prompt_template = get_prompt_template(prompt_style)
-        llm = get_llm(streaming=False)
-        chain = prompt_template | llm | StrOutputParser()
-        
-        answer = chain.invoke({
-            "context": context_str,
-            "chat_history": history_str,
-            "question": query
-        })
+        if use_multistep:
+            # NEW: Multi-Step Generation (Priorities 3-8)
+            print("   🔗 Using 3-step chain (Evidence -> Reasoning -> Answer)")
+            from app.services.multistep_rag import create_multistep_chain
+            
+            llm = get_llm(streaming=False)
+            evidence_chain, reasoning_chain, final_chain = create_multistep_chain(llm)
+            
+            # Step 1: Extract Evidence
+            print("   📋 Step 1: Extracting evidence...")
+            evidence = evidence_chain.invoke({
+                "context": context_str,
+                "question": query
+            })
+            
+            # Step 2: Architectural Reasoning
+            print("   🧠 Step 2: Reasoning about architecture...")
+            reasoning = reasoning_chain.invoke({
+                "evidence": evidence,
+                "question": query
+            })
+            
+            # Step 3: Final Structured Answer
+            print("   ✍️  Step 3: Formatting final answer...")
+            answer = final_chain.invoke({
+                "question": query,
+                "evidence": evidence,
+                "reasoning": reasoning
+            })
+        else:
+            # Original single-shot generation
+            prompt_template = get_prompt_template(prompt_style)
+            llm = get_llm(streaming=False)
+            chain = prompt_template | llm | StrOutputParser()
+            
+            answer = chain.invoke({
+                "context": context_str,
+                "chat_history": history_str,
+                "question": query
+            })
 
         # Extract sources with proper type conversion
         sources = []
@@ -560,7 +624,8 @@ def query_codebase_stream(
     query: str,
     top_k: int = 5,
     chat_history: List[Dict] = None,
-    prompt_style: str = "senior_dev"
+    prompt_style: str = "senior_dev",
+    use_summaries: bool = True  # NEW: Use semantic summaries instead of raw code
 ) -> Generator[str, None, None]:
     """
     Streaming version with enhanced source formatting.
@@ -573,8 +638,8 @@ def query_codebase_stream(
             yield "I couldn't find any relevant code in the repository to answer your question."
             return
 
-        # 2. Format context
-        context_str = format_context(similar_chunks, include_similarity=False)
+        # 2. Format context (with optional summarization)
+        context_str = format_context(similar_chunks, include_similarity=False, use_summaries=use_summaries)
         history_str = format_chat_history(chat_history or [])
 
         # 3. Stream answer

@@ -31,13 +31,20 @@
 
 ## 🚀 Features
 
+### Core Capabilities
 - **🔍 Semantic Code Search**: Powered by ChromaDB and vector embeddings for understanding code meaning.
-- **💬 Chat with Code**: Context-aware Q&A using LLMs via LangChain orchestration.
+- **💬 Production-Grade RAG**: Multi-step generation with strict evidence-based reasoning.
 - **🌲 Multi-Language Support**: Supports 25+ programming languages including Python, JavaScript, TypeScript, Java, Go, Rust, and more.
-- **🔄 Hybrid Search**: Combines semantic, keyword, symbol, and regex search for comprehensive results.
-- **⚡ Real-time Analysis**: Fast and efficient backend powered by FastAPI.
+- **🔄 Hybrid Search**: Combines BM25, dense embeddings, and RRF fusion for optimal retrieval.
+- **⚡ Incremental Indexing**: Content-hash based change detection—skip unchanged files.
 - **✨ Modern UI**: Sleek, responsive interface built with Next.js and TailwindCSS.
-- **📚 Chat History**: Maintains conversation context for follow-up questions.
+
+### Advanced RAG Features
+- **🧠 Multi-Step Generation**: 3-step chain (Evidence → Reasoning → Answer) separates retrieval comprehension from generation.
+- **📊 Context Pre-Summary**: Semantic summaries instead of raw 400-line code dumps—reduces cognitive load.
+- **🛡️ Strict Guardrails**: Evidence thresholds prevent over-claiming architecture (e.g., won't call it "microservices" without orchestration).
+- **🎯 Confidence Scoring**: Every answer includes High/Medium/Low confidence with explicit reasoning.
+- **🔒 Prevents Hallucinations**: Counterfactual reasoning and claim verification eliminate unsupported statements.
 
 ---
 
@@ -374,7 +381,7 @@ python run_evaluation.py 7 --save results.json --no-reranker
 
 | Model | Parameters | Use Case |
 |-------|------------|----------|
-| **qwen2.5-coder:7b** | 7B | Code understanding, Q&A generation |
+| **qwen2.5-coder:7b** | 7B | Code understanding, controlled reasoning |
 
 ### Why Qwen 2.5 Coder?
 
@@ -382,23 +389,64 @@ python run_evaluation.py 7 --save results.json --no-reranker
 2. **Balanced Size**: 7B parameters offers good quality with reasonable hardware requirements
 3. **Local Deployment**: Runs via Ollama without cloud dependencies
 4. **Context Length**: Supports extended context for code analysis
+5. **Strong Reasoning**: Excels at structured, evidence-based generation
 
-### Prompt Styles
+### Multi-Step Controlled Reasoning Pipeline
 
-The RAG service supports multiple prompt personalities:
+CodeMind uses a **3-step chain** instead of one-shot generation:
 
-| Style | Description |
-|-------|-------------|
-| `senior_dev` | Detailed technical breakdowns with best practices (default) |
-| `concise` | Direct, minimal answers for quick reference |
-| `educational` | Step-by-step explanations for learning |
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CONTROLLED REASONING PIPELINE                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+   PASS 1: Evidence Extraction          PASS 2+3: Reasoning & Verification
+          │                                       │
+          ▼                                       ▼
+  ┌──────────────────┐                  ┌─────────────────────────────┐
+  │ Extract Facts    │                  │ Apply Evidence Thresholds:  │
+  │ Quote Files      │─────────────────▶│ - Architecture: ≥3–4 signals│
+  │ NO interpretation│                  │ - Pattern: ≥2 signals       │
+  └──────────────────┘                  │ - File purpose: ≥1 signal   │
+                                        │                             │
+                                        │ Counterfactual Reasoning    │
+                                        │ Claim Verification          │
+                                        └─────────────────────────────┘
+                                                 │
+                                                 ▼
+                                        ┌─────────────────────────────┐
+                                        │  Final Structured Answer:   │
+                                        │  - Answer                   │
+                                        │  - Evidence (with files)    │
+                                        │  - Missing Signals          │
+                                        │  - Confidence (H/M/L)       │
+                                        └─────────────────────────────┘
+```
+
+### Architecture Guardrails
+
+To prevent over-claiming, the system enforces **strict architecture classification rules**:
+
+**Won't call it "Microservices" unless it has:**
+- Multiple independently deployable services
+- Service discovery or registry
+- API gateway
+- Inter-service communication (HTTP, messaging)
+- Container orchestration or infra separation
+
+FastAPI + service folders ALONE ≠ microservices.
+
+**Prefers conservative labels:**
+- "Layered Monolith"
+- "Modular Monolith"
+- "Architecture cannot be conclusively determined"
 
 ### LLM Configuration
 
 ```python
 ChatOllama(
     model="qwen2.5-coder:7b",
-    temperature=0.2,        # Low temp for factual answers
+    temperature=0.2,        # Low temp for factual, grounded answers
     keep_alive="5m",        # Keep model warm
     num_predict=2048,       # Max generation length
 )
@@ -406,59 +454,74 @@ ChatOllama(
 
 ---
 
-## 🔍 Retrieval Process
+## 🔍 Advanced Retrieval & Generation
 
-CodeMind implements a sophisticated **multi-stage hybrid retrieval** system:
+CodeMind implements a **production-grade RAG pipeline** with hybrid search, context compression, and multi-step reasoning.
 
-### Search Modes
-
-| Mode | Method | Best For |
-|------|--------|----------|
-| `SEMANTIC` | Vector similarity (cosine) | Natural language queries |
-| `KEYWORD` | PostgreSQL ILIKE | Exact term matching |
-| `SYMBOL` | Symbol table lookup | Function/class names |
-| `REGEX` | Pattern matching | Complex text patterns |
-| `HYBRID` | All combined | General queries (default) |
-| `AUTO` | Auto-detect based on query | User convenience |
-
-### Retrieval Flow
+### Hybrid Search (BM25 + Dense + RRF)
 
 ```
-User Query
-    │
-    ▼
-┌─────────────────────┐
-│   Query Analysis    │ ───▶ Auto-detect mode (symbol? regex? NL?)
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
-│   Parallel Search   │
-│  • Semantic (Chroma)│
-│  • Keyword (PG)     │
-│  • Symbol (PG)      │
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
-│   Score Fusion      │ ───▶ Weighted combination + multi-match boost
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
-│    Re-Ranking       │ ───▶ Boost by file type + keyword overlap
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
-│  Context Formatting │ ───▶ Truncate, group by file, add metadata
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
-│   LLM Generation    │ ───▶ Stream response with sources
-└─────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         HYBRID SEARCH PIPELINE                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+   Query "how does auth work?"
+         │
+         ├──────────────┬──────────────┐
+         ▼              ▼              ▼
+  ┌──────────┐   ┌──────────┐   ┌──────────┐
+  │   BM25   │   │  Dense   │   │ Metadata │
+  │ (keyword)│   │ (vector) │   │ Filters  │
+  └──────────┘   └──────────┘   └──────────┘
+         │              │              │
+         └──────────────┴──────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │  RRF Fusion     │ ────▶ Top 20 candidates
+            │ (rank merging)  │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │  Cross-Encoder  │ ────▶ Rerank to Top 8
+            │   Reranking     │
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │ Context Summary │ ────▶ Extract imports, classes, functions
+            │     Layer       │       (not raw 400-line dumps)
+            └─────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │   Multi-Step    │ ────▶ Evidence → Reasoning → Answer
+            │   Generation    │
+            └─────────────────┘
 ```
+
+### Context Pre-Summary Layer
+
+Instead of dumping raw code, we extract **semantic summaries**:
+
+**Before (raw code):**
+```python
+# 400 lines of FastAPI code with imports, routes, middleware...
+```
+
+**After (summary):**
+```
+### File: backend/app/main.py
+- Imports: FastAPI, uvicorn, logging
+- Functions: create_app, configure_middlewares, register_routes
+- Classes: None
+```
+
+**Benefits:**
+- ⚡ **Lower latency** (fewer tokens)
+- 🎯 **Better reasoning** (structured info is clearer)
+- 🚫 **Less hallucination** (model reasons on summaries, not noise)
 
 ### Scoring Weights (Hybrid Mode)
 
