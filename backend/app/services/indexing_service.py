@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from app.models import Repository, CodeFile, CodeChunk, Symbol, IndexJob
 from app.services.github_service import clone_repository, cleanup_repository
 from app.services.code_parser import parse_repository_files
-from app.services.ast_chunker import ast_chunker
-from app.services.symbol_extractor import symbol_extractor
+# from app.services.ast_chunker import ast_chunker  # DELETED - unused
+# from app.services.symbol_extractor import symbol_extractor  # DELETED - unused
 from app.services.embedding_service import embeddings, chroma_client
 from app.config.search_config import search_config
 
